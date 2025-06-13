@@ -1,0 +1,44 @@
+name: Deploy .NET API to Cloud Run
+
+on:
+  push:
+    branches: [ "main" ] # Triggers on push to the main branch
+    paths:
+      - 'backend' # Only run if code inside your API's folder changes
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker
+      run: gcloud auth configure-docker europe-north2-docker.pkg.dev 
+
+    - name: Build and Push Docker image
+      run: |
+        cd YourApiFolder # Navigate to your API's folder
+        docker build -t europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/YOUR_ARTIFACT_REPO_NAME/YOUR_IMAGE_NAME:latest .
+        docker push europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/YOUR_ARTIFACT_REPO_NAME/YOUR_IMAGE_NAME:latest
+
+    - name: Deploy to Cloud Run
+      uses: google-github-actions/deploy-cloudrun@v2
+      with:
+        service: 'book-store-backend' # The name of your Cloud Run service
+        region: 'europe-north2' 
+        image: europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/YOUR_ARTIFACT_REPO_NAME/YOUR_IMAGE_NAME:latest
+        flags: '--sql-instances=glassy-tower-462512-e0:europe-north2:bookstore'
