@@ -36,9 +36,9 @@ public class Program
         builder.Services.ConfigureJwt(builder.Configuration);
         builder.Services.ConfigureCors();
         builder.Services.ConfigureServices();
-        builder.Services.ConfigureOpenApi(); // Swagger configuration
+        //builder.Services.ConfigureOpenApi(); // Swagger configuration
         builder.Services.AddEndpointsApiExplorer();
-        //builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen();
 
         builder.Services.AddScoped<IBookRepository, BookRepository>();
         builder.Services.AddScoped<IBookService, BookService>();
