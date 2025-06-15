@@ -29,18 +29,24 @@ jobs:
       run: gcloud auth configure-docker europe-north2-docker.pkg.dev
 
     - name: Build and Push Docker image
+      # TODO: Replace YOUR_ARTIFACT_REPO_NAME with the actual name of your repository in Artifact Registry (e.g., 'my-apis').
       run: |
         # This command assumes your Dockerfile is at the root of your repo.
         # If your code is in a subfolder (e.g., 'src'), add 'cd src' on the line above this one.
-        docker build -t europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-api/github-actions-deployer:latest .
-        docker push europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-api/github-actions-deployer:latest
+        docker build -t europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/YOUR_ARTIFACT_REPO_NAME/bookstore-api:latest .
+        docker push europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/YOUR_ARTIFACT_REPO_NAME/bookstore-api:latest
 
     - name: Deploy to Cloud Run
       uses: google-github-actions/deploy-cloudrun@v2
       with:
-        service: 'github-actions-deployer'
+        # This is the name your service will have in Cloud Run.
+        service: 'bookstore-api'
+        
         region: 'europe-north2'
-        image: europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/YOUR_REPO_NAME/YOUR_IMAGE_NAME:latest
+        
+        # The image path now correctly matches the one built in the previous step.
+        # TODO: Replace YOUR_ARTIFACT_REPO_NAME with the same name you used above.
+        image: europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/YOUR_ARTIFACT_REPO_NAME/bookstore-api:latest
         
         # This is your specific Cloud SQL instance connection name
         flags: '--sql-instances=glassy-tower-462512-e0:europe-north2:bookstore'
