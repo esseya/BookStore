@@ -32,13 +32,13 @@ jobs:
       run: |
         # This command assumes your Dockerfile is at the root of your repo.
         # If your code is in a subfolder (e.g., 'src'), add 'cd src' on the line above this one.
-        docker build -t europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/YOUR_REPO_NAME/YOUR_IMAGE_NAME:latest .
-        docker push europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/YOUR_REPO_NAME/YOUR_IMAGE_NAME:latest
+        docker build -t europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-api/github-actions-deployer:latest .
+        docker push europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-api/github-actions-deployer:latest
 
     - name: Deploy to Cloud Run
       uses: google-github-actions/deploy-cloudrun@v2
       with:
-        service: 'bookstore-api'
+        service: 'github-actions-deployer'
         region: 'europe-north2'
         image: europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/YOUR_REPO_NAME/YOUR_IMAGE_NAME:latest
         
