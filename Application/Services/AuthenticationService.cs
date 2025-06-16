@@ -36,7 +36,7 @@ public class AuthenticationService : IAuthenticationService
         if (expireTime)
             user.RefreshTokenExpireTime = DateTime.UtcNow.AddDays(2);
 
-        var res = await userManager.UpdateAsync(user); //ToDo validate res!
+        var res = await userManager.UpdateAsync(user);
         string accessToken = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
 
         return new TokenDto(accessToken, user.RefreshToken);
@@ -72,7 +72,6 @@ public class AuthenticationService : IAuthenticationService
         {
             new Claim(ClaimTypes.Name, user.UserName!),
             new Claim(ClaimTypes.NameIdentifier, user.Id!),
-            //Add more if needed
         };
 
         return claims;

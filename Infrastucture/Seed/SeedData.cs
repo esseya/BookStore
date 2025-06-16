@@ -12,10 +12,10 @@ namespace Infrastructure.Seed
             BookStoreContext context,
             UserManager<User> userManager)
         {
-            // Apply any pending migrations
+
             await context.Database.MigrateAsync();
 
-            // Seed Books
+
             if (!context.Books.Any())
             {
                 var bookFaker = new Faker<Book>()
@@ -29,7 +29,7 @@ namespace Infrastructure.Seed
                 await context.SaveChangesAsync();
             }
 
-            // Seed Users
+
             if (!userManager.Users.Any())
             {
                 var userFaker = new Faker<User>()

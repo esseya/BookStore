@@ -41,7 +41,7 @@ public class BookService : IBookService
             throw new Exception("User not found.");
 
         var book = _mapper.Map<Book>(dto);
-        book.Id = Guid.NewGuid(); // You handle GUID manually here
+        book.Id = Guid.NewGuid();
 
         user.Books.Add(book);
         await _bookRepo.AddAsync(book);
@@ -54,7 +54,7 @@ public class BookService : IBookService
         if (existingBook == null)
             throw new Exception("Book not found.");
 
-        _mapper.Map(dto, existingBook); // Updates properties
+        _mapper.Map(dto, existingBook);
         await _bookRepo.UpdateAsync(existingBook);
         await _bookRepo.SaveAsync();
     }

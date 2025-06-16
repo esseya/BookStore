@@ -17,11 +17,13 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // ? Add DbContext
-        builder.Services.AddDbContext<BookStoreContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-        // ? Add IdentityCore (if you're not using full Identity UI)
+        builder.Services.AddDbContext<BookStoreContext>(options =>
+            options.UseSqlServer(
+                builder.Configuration.GetConnectionString("DefaultConnection"),
+                sqlOptions => sqlOptions.EnableRetryOnFailure()
+            ));
+
         builder.Services.AddIdentityCore<User>(options =>
         {
             options.User.RequireUniqueEmail = true;
@@ -30,15 +32,27 @@ public class Program
         .AddEntityFrameworkStores<BookStoreContext>()
         .AddSignInManager()
         .AddDefaultTokenProviders();
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowStaticWebApp",
+                policy =>
+                {
+                    policy.WithOrigins("https://agreeable-island-0bd510f03.6.azurestaticapps.net")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+        });
 
-        // Add services to the container
         builder.Services.AddControllers();
         builder.Services.ConfigureJwt(builder.Configuration);
-        builder.Services.ConfigureCors();
+        //builder.Services.ConfigureCors();
         builder.Services.ConfigureServices();
-        //builder.Services.ConfigureOpenApi(); // Swagger configuration
+        //builder.Services.ConfigureOpenApi(); 
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+        });
 
         builder.Services.AddScoped<IBookRepository, BookRepository>();
         builder.Services.AddScoped<IBookService, BookService>();
@@ -48,7 +62,6 @@ public class Program
 
         var app = builder.Build();
 
-        // Seed admin user before running the app
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
@@ -71,14 +84,35 @@ public class Program
             }
         }
 
-        if (app.Environment.IsDevelopment())
+        if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
         {
+            app.UseDeveloperExceptionPage();
+
             app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            });
         }
 
         app.UseHttpsRedirection();
-        app.UseCors("AllowAll");
+        app.UseCors("AllowStaticWebApp");
+        app.Use(async (context, next) =>
+        {
+            context.Response.OnStarting(() =>
+            {
+                Console.WriteLine("CORS headers:");
+                foreach (var header in context.Response.Headers)
+                {
+                    if (header.Key.StartsWith("Access-Control"))
+                        Console.WriteLine($"{header.Key}: {header.Value}");
+                }
+                return Task.CompletedTask;
+            });
+
+            await next();
+        });
+
         app.UseAuthentication();
         app.UseAuthorization();
 
